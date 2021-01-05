@@ -14,7 +14,7 @@ private let reuseIdentifier = "FlickrPhotoCell"
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                                 UICollectionViewDataSource, MKMapViewDelegate, CLLocationManagerDelegate,
-                                UIGestureRecognizerDelegate, NSFetchedResultsControllerDelegate  {
+                                UIGestureRecognizerDelegate  {
     
     var latitude: Double = 0.0
     var longitude: Double = 0.0
@@ -82,35 +82,38 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
         let photoInstance = Photo(context: dataController.viewContext)
-
-        FlickrClient.getPhotosByLocation(latitude: 45,
-                                         longitude: -90, page: 1) { photosbyLocation in
         
-            if photosbyLocation.photos.photo.count == 0 {
-                self.showNoImagesLabel()
-            } else {
-                // MARK -- This seems  wildly inefficient to be using it like this.
-                for photo in photosbyLocation.photos.photo {
-                    do{
-                        let photoUrl = URL(string: photo.url_m)
-                        let imageData = try Data(contentsOf: photoUrl!)
+            FlickrClient.getPhotosByLocation(latitude: 45,
+                                             longitude: -90, page: 1) { photosbyLocation in
             
-                        photoInstance.image = imageData as NSData
+                if photosbyLocation.photos.photo.count == 0 {
+                    self.showNoImagesLabel()
+                } else {
+                    // MARK -- This seems  wildly inefficient to be using it like this.
+                    for photo in photosbyLocation.photos.photo {
+                        do{
+                            let photoUrl = URL(string: photo.url_m)
+                            let imageData = try Data(contentsOf: photoUrl!)
 
-                        
-                        try self.dataController.viewContext.save()
-
-                    } catch {
-                        fatalError("Core Data save error")
+                            photoInstance.image = imageData as NSData
+                        } catch {
+                            fatalError("Core Data save error")
+                        }
                     }
                 }
-                
-                self.hideNoImagesLabel()
-//                self.flickrPhotos = photosbyLocation.photos.photo
-                self.enableNewCollectionButton()
-                self.collectionView.reloadData()
+            }
+        
+        if photoInstance.hasChanges {
+            do{
+                try self.dataController.viewContext.save()
+            } catch {
+                print("Core Data error: \(error.localizedDescription)")
             }
         }
+        
+        self.hideNoImagesLabel()
+        self.enableNewCollectionButton()
+        self.collectionView.reloadData()
     }
     
     func enableNewCollectionButton() {
@@ -164,10 +167,29 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
             flickrPhotoCell.stopActivityIndicator()
         }
 
-                
         return cell
     }
-    
     // MARK: TODO -- Implementing selecting and deselecting in UICollectionView
-    
+}
+
+extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            collectionView.insertItems(at: [newIndexPath!])
+        case .delete:
+            break
+        case .update:
+            break
+        case .move:
+            break
+        }
+    }
+//    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+//        <#code#>
+//    }
+//
+//    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+//        <#code#>
+//    }
 }

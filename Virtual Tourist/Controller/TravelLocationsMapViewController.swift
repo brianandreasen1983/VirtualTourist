@@ -59,14 +59,14 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         super.viewDidLoad()
         self.navigationController?.title = "Virtual Tourist"
         setTitle()
-        setupFetchedResultsController()
-        placeSavedPins()
         setLongPressGestureRecognizer()
         setMapView()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         determineCurrentLocation()
+        setupFetchedResultsController()
+        placeSavedPins()
     }
     
     override func viewDidDisappear(_ animated: Bool) {

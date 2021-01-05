@@ -12,20 +12,6 @@ class FlickrPhotoCell: UICollectionViewCell {
     @IBOutlet weak var flickrPhotoImageView: UIImageView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-//    func configureImage(with url: URL) {
-//        do {
-//            self.flickrPhotoImageView.image = nil
-//            let imageData = try Data(contentsOf: url)
-//            let image = UIImage(data: imageData)
-//            DispatchQueue.main.async {
-//                self.flickrPhotoImageView.image = image
-//                self.stopActivityIndicator()
-//            }
-//        } catch {
-//            stopActivityIndicator()
-//        }
-//    }
-    
     func startActivityIndicator() {
         activityIndicator.startAnimating()
     }

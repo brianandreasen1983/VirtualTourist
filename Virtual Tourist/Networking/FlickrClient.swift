@@ -12,7 +12,7 @@ import Alamofire
 // MARK: Improve this to have only 100 items returned instead of 250.
 class FlickrClient {
     static let baseURL = "https://www.flickr.com/services/"
-    static let apiKey = "cb5db23d1e62d82b56c52c409e071100"
+    static let apiKey = ""
     static var requestParameters: [String : String] = [:]
     
     class func getPhotosByLocation(latitude: Double, longitude: Double, page: Int?, completion: @escaping ((FlickrPhotosByLocation) -> Void)) {
@@ -34,7 +34,8 @@ class FlickrClient {
             .responseDecodable(of: FlickrPhotosByLocation.self) { (response) in
                 guard let flickrPhotosByLocation = response.value else { return }
                 print(flickrPhotosByLocation)
-                // MARK it would make sense to me to save the data to core data here when the request is complete.
+                // Insert the data into core data here?
+                
                 completion(flickrPhotosByLocation)
             }
     }
