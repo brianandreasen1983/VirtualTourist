@@ -34,8 +34,6 @@ class FlickrClient {
             .responseDecodable(of: FlickrPhotosByLocation.self) { (response) in
                 guard let flickrPhotosByLocation = response.value else { return }
                 print(flickrPhotosByLocation)
-                // Insert the data into core data here?
-                
                 completion(flickrPhotosByLocation)
             }
     }
