@@ -13,14 +13,28 @@ import Alamofire
 class FlickrClient {
     static let baseURL = "https://www.flickr.com/services/"
     static let apiKey = "cb5db23d1e62d82b56c52c409e071100"
-
-    class func getPhotosByLocation(latitude: Double, longitude: Double, completion: @escaping ((FlickrPhotosByLocation) -> Void)) {
-        AF.request("\(baseURL)rest/?method=flickr.photos.search&api_key=\(apiKey)&lat=\(latitude)&lon=\(longitude)&format=json&nojsoncallback=1&extras=url_m&media=photo&per_page=50")
+    static var requestParameters: [String : String] = [:]
+    
+    class func getPhotosByLocation(latitude: Double, longitude: Double, page: Int?, completion: @escaping ((FlickrPhotosByLocation) -> Void)) {
+        requestParameters["method"] = "flickr.photos.search"
+        requestParameters["api_key"] = "\(apiKey)"
+        requestParameters["lat"] = "\(latitude)"
+        requestParameters["lon"] = "\(longitude)"
+        requestParameters["format"] = "json"
+        requestParameters["nojsoncallback"] = "1"
+        requestParameters["extras"] = "url_m"
+        requestParameters["media"] = "photo"
+        requestParameters["per_page"] = "50"
+        // If no value is provided then default it to the first page.
+        requestParameters["page"] = String(page ?? 1)
+        
+        AF.request("\(baseURL)rest/", parameters: requestParameters )
             .validate(statusCode: 200..<300)
-            .validate(contentType: ["application/json"])          
+            .validate(contentType: ["application/json"])
             .responseDecodable(of: FlickrPhotosByLocation.self) { (response) in
                 guard let flickrPhotosByLocation = response.value else { return }
                 print(flickrPhotosByLocation)
+                // MARK it would make sense to me to save the data to core data here when the request is complete.
                 completion(flickrPhotosByLocation)
             }
     }

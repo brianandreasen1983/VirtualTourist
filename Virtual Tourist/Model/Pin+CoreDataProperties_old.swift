@@ -6,11 +6,16 @@
 //  Copyright © 2020 Brian Andreasen. All rights reserved.
 //
 
+import Foundation
 import CoreData
 
 extension Pin {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<Pin> {
+      return NSFetchRequest<Pin>(entityName: "Pin")
+    }
+    
    @NSManaged var latitude: Double
    @NSManaged var longitude: Double
-   @NSManaged var photo: Set<Photo>
+   @NSManaged var photos: Set<Photo>
 }
 

@@ -15,7 +15,6 @@ class FlickrPhotoCell: UICollectionViewCell {
     func configureImage(with url: URL) {
         do {
             self.flickrPhotoImageView.image = nil
-            startActivityIndicator()
             let imageData = try Data(contentsOf: url)
             let image = UIImage(data: imageData)
             DispatchQueue.main.async {
@@ -27,7 +26,7 @@ class FlickrPhotoCell: UICollectionViewCell {
         }
     }
     
-    private func startActivityIndicator() {
+    func startActivityIndicator() {
         activityIndicator.startAnimating()
     }
     

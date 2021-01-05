@@ -12,17 +12,29 @@ import CoreData
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
+    let dataController = DataController(modelName: "VirtualTourist")
 
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         guard let _ = (scene as? UIWindowScene) else { return }
         
-        let travelLocationsMapViewController = TravelLocationsMapViewController()
-        travelLocationsMapViewController.context = appDelegate.persistentContainer.viewContext
+        dataController.load()
+        
+//        let navigationController = window?.rootViewController as! UINavigationController
+//        let travelLocationsMapViewController = navigationController.topViewController as! TravelLocationsMapViewController
+//        travelLocationsMapViewController.dataController = dataController
+        
+        if let navigationController = window?.rootViewController as? UINavigationController {
+            if let travelLocationsMapVC = navigationController.topViewController as? TravelLocationsMapViewController{
+                travelLocationsMapVC.dataController = dataController
+            }
+        }
+        
+        // MARK: TODO -- Assign another view controller and then pass the data controller to the viewController
+        
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

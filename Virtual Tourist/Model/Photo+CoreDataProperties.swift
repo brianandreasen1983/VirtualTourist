@@ -7,9 +7,13 @@
 //
 
 import Foundation
+import CoreData
 
 extension Photo {
-    // MARK -- Unsure of this property here being proper just here so the code can compile.
-   @NSManaged var image: NSObject
-   @NSManaged var pin: Set<Pin>
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<Photo> {
+      return NSFetchRequest<Photo>(entityName: "Photo")
+    }
+    
+   @NSManaged var image: NSData?
+   @NSManaged var pins: Set<Pin>
 }

@@ -6,9 +6,10 @@
 //  Copyright © 2020 Brian Andreasen. All rights reserved.
 //
 
+import Foundation
 import CoreData
 
 @objc(Pin)
-public class Pin : NSManagedObject {}
+public class Pin: NSManagedObject {}
 
 
