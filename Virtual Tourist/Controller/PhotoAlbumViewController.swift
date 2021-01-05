@@ -151,15 +151,19 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
 
         // If the data image data is data then assign it to the cell and create a new cell otherwise use a placeholder.
-        flickrPhotoCell.startActivityIndicator()
         
-        if let data = flickrPhoto.image as Data? {
-            flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
-        } else {
-            flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
+        DispatchQueue.main.async {
+            flickrPhotoCell.startActivityIndicator()
+
+            if let data = flickrPhoto.image as Data? {
+                flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
+            } else {
+                flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
+            }
+            
+            flickrPhotoCell.stopActivityIndicator()
         }
-        
-        flickrPhotoCell.stopActivityIndicator()
+
                 
         return cell
     }
