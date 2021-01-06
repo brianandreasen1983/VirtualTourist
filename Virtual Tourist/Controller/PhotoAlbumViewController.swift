@@ -17,21 +17,18 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                                 UIGestureRecognizerDelegate  {
     
     // Member Variables
-    
     var latitude: Double = 0.0
     var longitude: Double = 0.0
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Photo>!
     
     // IBOutlets
-
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var noImagesLabel: UILabel!
     
     // IB Actions
-    
     @IBAction func createCollection(_ sender: Any) {
         if fetchedResultsController.fetchedObjects!.count > 0 {
             deleteAllPhotosFromCoreData()
@@ -58,9 +55,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
+    // MARK: TODO --
     fileprivate func getRandomPhotosFromFlickr() {
         let randomPage = Int.random(in: 1...50)
-        FlickrClient.getPhotosByLocation(latitude: 45, longitude: -90, page: randomPage) { photosByLocation in
+        FlickrClient.getPhotosByLocation(latitude: latitude, longitude: longitude, page: randomPage) { photosByLocation in
             if randomPage > photosByLocation.photos.pages {
                 self.showNoImagesLabel()
                 return
@@ -97,7 +95,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     }
     
     // View Controller Life Cycle Methods
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         collectionView.dataSource = self
@@ -109,8 +106,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     }
     
     fileprivate func getPhotosByLocation() {
-        FlickrClient.getPhotosByLocation(latitude: 45,
-                                         longitude: -90, page: 1) { photosbyLocation in
+        FlickrClient.getPhotosByLocation(latitude: latitude,
+                                         longitude: longitude, page: 1) { photosbyLocation in
             
             if photosbyLocation.photos.photo.count == 0 {
                 self.showNoImagesLabel()
@@ -183,7 +180,17 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         title = "Photo Collection"
     }
     
-    // MARK: UICollectionView Methods
+    func deleteAllPhotosFromCoreData() {
+        for photo in fetchedResultsController.fetchedObjects ?? [] {
+            dataController.viewContext.delete(photo)
+            try? dataController.viewContext.save()
+        }
+    }
+
+}
+
+// PhotoAlbumViewController extensions
+extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return fetchedResultsController.sections?.count ?? 1
     }
@@ -215,22 +222,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         return cell
     }
     
-    
-    
-    // MARK: TODO -- I believe the deleteion needs to be handled on the background context since this could be a lengthy process.
-    // Issues: UI is not reactive to this.
-    func deleteAllPhotosFromCoreData() {
-        for photo in fetchedResultsController.fetchedObjects ?? [] {
-            dataController.viewContext.delete(photo)
-            try? dataController.viewContext.save()
-        }
-    }
-
-}
-
-// PhotoAlbumViewController extensions
-
-extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
             case .insert:
@@ -244,5 +235,12 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
             case .move:
                 break
         }
+    }
+        
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let flickrPhotoToDelete = fetchedResultsController.object(at: indexPath)
+        dataController.viewContext.delete(flickrPhotoToDelete)
+        try? dataController.viewContext.save()
+        try? collectionView.reloadData()
     }
 }

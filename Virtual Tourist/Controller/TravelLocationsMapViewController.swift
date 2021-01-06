@@ -13,6 +13,8 @@ import CoreLocation
 
 
 class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, UIGestureRecognizerDelegate, NSFetchedResultsControllerDelegate {
+    
+    // Member Variables
     var locationManager:CLLocationManager!
     var currentLocationStr = "Current Location"
     var gestureRecognizer: UILongPressGestureRecognizer!
@@ -20,6 +22,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Pin>!
     
+    // IBOutlets
     @IBOutlet private var mapView: MKMapView!
 
     fileprivate func setupFetchedResultsController() {
@@ -45,15 +48,26 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         gestureRecognizer.delegate = self
         mapView.addGestureRecognizer(gestureRecognizer)
     }
-
     
-    // MARK: TODO: Get the users actual location based on their device...
     fileprivate func setMapView() {
-        let initLocation = CLLocation(latitude: 45, longitude: -90)
-        mapView.centerToLocation(initLocation)
         mapView.delegate = self
     }
     
+    fileprivate func savePin(_ annotation: MKPointAnnotation) {
+        let pin = Pin(context: dataController.viewContext)
+        pin.latitude = annotation.coordinate.latitude
+        pin.longitude = annotation.coordinate.longitude
+        pin.createdDate = Date() as NSDate
+        
+        do{
+            try dataController.viewContext.save()
+            self.mapView.addAnnotation(annotation)
+        } catch {
+            fatalError("Core Data save error")
+        }
+    }
+    
+    // ViewController life cycle methods
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationController?.title = "Virtual Tourist"
@@ -72,20 +86,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         super.viewDidDisappear(true)
         fetchedResultsController = nil
     }
-        
-    fileprivate func savePin(_ annotation: MKPointAnnotation) {
-        let pin = Pin(context: dataController.viewContext)
-        pin.latitude = annotation.coordinate.latitude
-        pin.longitude = annotation.coordinate.longitude
-        pin.createdDate = Date() as NSDate
-        
-        do{
-            try dataController.viewContext.save()
-            self.mapView.addAnnotation(annotation)
-        } catch {
-            fatalError("Core Data save error")
-        }
-    }
     
     @objc func dropPinOnTouchAndHoldGesture() {
         let location = gestureRecognizer.location(in: mapView)
@@ -96,7 +96,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         savePin(annotation)
     }
     
-    // MARK: TODO -- If there is a valid location then we need to see if there are photos at tht pin to display.
+    // MARK: TODO -- Clean this code up and maybe optimize?
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         selectedAnnotation = view.annotation as? MKPointAnnotation
         
