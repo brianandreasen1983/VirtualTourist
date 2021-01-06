@@ -203,6 +203,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         return cell
     }
     
+    
+    
     // MARK: TODO -- I believe the deleteion needs to be handled on the background context since this could be a lengthy process.
     // Issues: UI is not reactive to this.
     func deleteAllPhotosFromCoreData() {
