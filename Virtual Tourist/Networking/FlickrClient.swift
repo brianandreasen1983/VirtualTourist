@@ -33,8 +33,13 @@ class FlickrClient {
             .validate(contentType: ["application/json"])
             .responseDecodable(of: FlickrPhotosByLocation.self) { (response) in
                 guard let flickrPhotosByLocation = response.value else { return }
+                print(type(of: flickrPhotosByLocation))
                 print(flickrPhotosByLocation)
                 completion(flickrPhotosByLocation)
             }
+    }
+    
+    func saveJSONDataToCoreData() {
+        
     }
 }

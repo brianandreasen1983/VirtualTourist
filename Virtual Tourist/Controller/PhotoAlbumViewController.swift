@@ -14,7 +14,7 @@ private let reuseIdentifier = "FlickrPhotoCell"
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                                 UICollectionViewDataSource, MKMapViewDelegate, CLLocationManagerDelegate,
-                                UIGestureRecognizerDelegate  {
+                                UIGestureRecognizerDelegate, NSFetchedResultsControllerDelegate  {
     
     var latitude: Double = 0.0
     var longitude: Double = 0.0
@@ -28,7 +28,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
-        let sortDescriptor = NSSortDescriptor(key: "image", ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: "createdDate", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest,
@@ -64,49 +64,50 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        collectionView.dataSource = self
+        collectionView.delegate = self
         setTitle()
         setupFetchedResultsController()
         disableNewCollectionButton()
-        collectionView.dataSource = self
-        collectionView.delegate = self
         hideNoImagesLabel()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
         
-        FlickrClient.getPhotosByLocation(latitude: 45,
-                                         longitude: -90, page: 1) { photosbyLocation in
-        
-            if photosbyLocation.photos.photo.count == 0 {
-                self.showNoImagesLabel()
-            } else {
-                // MARK -- This seems  wildly inefficient to be using it like this.
-                for photo in photosbyLocation.photos.photo {
-                    let photoInstance = Photo(context: self.dataController.viewContext)
-
-                    do{
-                        let photoUrl = URL(string: photo.url_m)
-                        let imageData = try Data(contentsOf: photoUrl!)
-
-                        photoInstance.image = imageData as NSData
-                    } catch {
-                        fatalError("Core Data save error")
-                    }
-                }
-                
-                if self.dataController.viewContext.hasChanges {
-                    do{
-                        try self.dataController.viewContext.save()
-                        self.hideNoImagesLabel()
-                        self.enableNewCollectionButton()
-                        self.collectionView.reloadData()
-                    } catch {
-                        print("Core Data error: \(error.localizedDescription)")
-                    }
-                }
-            }
-        }
+//        FlickrClient.getPhotosByLocation(latitude: 45,
+//                                         longitude: -90, page: 1) { photosbyLocation in
+//
+//            if photosbyLocation.photos.photo.count == 0 {
+//                self.showNoImagesLabel()
+//            } else {
+//                // MARK -- This seems  wildly inefficient to be using it like this.
+//                for photo in photosbyLocation.photos.photo {
+//                    let photoInstance = Photo(context: self.dataController.viewContext)
+//
+//                    do{
+//                        let photoUrl = URL(string: photo.url_m)
+//                        let imageData = try Data(contentsOf: photoUrl!)
+//
+//                        photoInstance.createdDate = Date() as NSDate
+//                        photoInstance.image = imageData as NSData
+//                    } catch {
+//                        fatalError("Core Data save error")
+//                    }
+//                }
+//
+//                if self.dataController.viewContext.hasChanges {
+//                    do{
+//                        try? self.dataController.viewContext.save()
+//                        self.hideNoImagesLabel()
+//                        self.enableNewCollectionButton()
+//                        self.collectionView.reloadData()
+//                    } catch {
+//                        print("Core Data error: \(error.localizedDescription)")
+//                    }
+//                }
+//            }
+//        }
     }
     
     func enableNewCollectionButton() {
@@ -135,12 +136,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchedResultsController.sections?.count ?? 1
+        return fetchedResultsController.sections?[section].numberOfObjects ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
         let flickrPhoto = fetchedResultsController.object(at: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
+        
 
         guard let flickrPhotoCell  = cell as? FlickrPhotoCell else {
             return cell
@@ -148,42 +150,33 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
 
         // If the data image data is data then assign it to the cell and create a new cell otherwise use a placeholder.
         
-        DispatchQueue.main.async {
-            flickrPhotoCell.startActivityIndicator()
+        flickrPhotoCell.startActivityIndicator()
 
-            if let data = flickrPhoto.image as Data? {
-                flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
-            } else {
-                flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
-            }
-            
-            flickrPhotoCell.stopActivityIndicator()
+        if let data = flickrPhoto.image as Data? {
+            flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
+        } else {
+            flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
         }
+        
+        flickrPhotoCell.stopActivityIndicator()
 
         return cell
     }
-    // MARK: TODO -- Implementing selecting and deselecting in UICollectionView
 }
 
-extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        switch type {
-            case .insert:
-                collectionView.insertItems(at: [newIndexPath!])
-            case .delete:
-                collectionView.deleteItems(at: [indexPath!])
-                break
-            case .update:
-                break
-            case .move:
-                break
-        }
-    }
-//    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-//        <#code#>
+//extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+//    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+//        switch type {
+//            case .insert:
+//                collectionView.insertItems(at: [newIndexPath!])
+//            case .delete:
+//                collectionView.deleteItems(at: [indexPath!])
+//                break
+//            case .update:
+//                collectionView.reloadItems(at: [indexPath!])
+//                break
+//            case .move:
+//                break
+//        }
 //    }
-//
-//    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-//        <#code#>
-//    }
-}
+//}

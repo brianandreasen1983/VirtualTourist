@@ -74,7 +74,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         fetchedResultsController = nil
     }
         
-    // MARK: TODO -- It is saving two objects for a single pin...
     fileprivate func savePin(_ annotation: MKPointAnnotation) {
         let pin = Pin(context: dataController.viewContext)
         pin.latitude = annotation.coordinate.latitude
@@ -102,24 +101,27 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         selectedAnnotation = view.annotation as? MKPointAnnotation
         
         if selectedAnnotation != nil {
-            // We first need to see if we can get a photo album by its location in core data.
             let pins = fetchedResultsController.fetchedObjects!
-            // I think the data structure is wrong because we need to iterate over the values.
-            // Is it saving as two seperate objects on the pin level?
+
             for pin in pins {
                 print("The latitude of the pin is: \(pin.latitude) and longitude is: \(pin.longitude) and has \(pin.photos.count) photos")
                 if (pin.latitude == selectedAnnotation?.coordinate.latitude && pin.longitude == selectedAnnotation?.coordinate.longitude) {
-                    print(pin.photos.count)
                     if pin.photos.count > 0 {
-                        // Do something wit the photos that are stored.
-                        // For now just get a count.
                         print(pin.photos.count)
+                        // MARK: TODO -- perform the segue and populate the data from core data in the PhotoAlbumViewController
+                    
                     } else {
-                        // Perform an API call here or navigate to the view controller and make the API call.
+                        // Options:
+                        // Perform the segue and then perform the API Call
+                        // Perform the API Call, Store the Response in Core Data
+                        // Navigate the segue
+                        // Load the data from core data into the PhotoAlbumViewController
                         performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
                     }
                 }
             }
+
+            performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
         }
     }
     
