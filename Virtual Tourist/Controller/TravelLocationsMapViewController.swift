@@ -21,7 +21,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
     var dataController: DataController!
     
     var fetchedResultsController: NSFetchedResultsController<Pin>!
-    var photoFetchedResultsController: NSFetchedResultsController<Photo>!
     
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -110,13 +109,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
                         print(pin.photos.count)
                         // MARK: TODO -- perform the segue and populate the data from core data in the PhotoAlbumViewController
                     
-                    } else {
-                        // Options:
-                        // Perform the segue and then perform the API Call
-                        // Perform the API Call, Store the Response in Core Data
-                        // Navigate the segue
-                        // Load the data from core data into the PhotoAlbumViewController
-                        performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
                     }
                 }
             }

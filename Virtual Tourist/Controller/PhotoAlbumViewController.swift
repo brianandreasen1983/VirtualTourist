@@ -14,7 +14,7 @@ private let reuseIdentifier = "FlickrPhotoCell"
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                                 UICollectionViewDataSource, MKMapViewDelegate, CLLocationManagerDelegate,
-                                UIGestureRecognizerDelegate, NSFetchedResultsControllerDelegate  {
+                                UIGestureRecognizerDelegate  {
     
     var latitude: Double = 0.0
     var longitude: Double = 0.0
@@ -44,20 +44,46 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
+    // MARK: TODO -- Remove all of the records from Core Data
+    // Perform an API Call and store the new photos back in Core Data
     @IBAction func createCollection(_ sender: Any) {
-        if ((fetchedResultsController.fetchedObjects?.isEmpty) != nil) {
-            // MARK: TODO -- Remove all of the records from core data
+        if fetchedResultsController.fetchedObjects!.count > 0 {
+            deleteAllPhotosFromCoreData()
         }
         
         let randomPage = Int.random(in: 1...50)
         FlickrClient.getPhotosByLocation(latitude: 45, longitude: -90, page: randomPage) { photosByLocation in
             if randomPage > photosByLocation.photos.pages {
                 self.showNoImagesLabel()
-                self.collectionView.reloadData()
                 return
             } else {
                 self.hideNoImagesLabel()
-                self.collectionView.reloadData()
+                for photo in photosByLocation.photos.photo {
+                    let photoInstance = Photo(context: self.dataController.viewContext)
+                    
+                    do{
+                        let photoUrl = URL(string: photo.url_m)
+                        let imageData = try Data(contentsOf: photoUrl!)
+                        
+                        photoInstance.createdDate = Date() as NSDate
+                        photoInstance.image = imageData as NSData
+                    } catch {
+                        fatalError("Core Data save error")
+                    }
+                }
+                
+                if self.dataController.viewContext.hasChanges {
+                    do{
+                        try? self.dataController.viewContext.save()
+                        self.hideNoImagesLabel()
+                        self.enableNewCollectionButton()
+                        DispatchQueue.main.async{
+                            self.collectionView.reloadData()
+                        }
+                    } catch {
+                        print("Core Data error: \(error.localizedDescription)")
+                    }
+                }
             }
         }
     }
@@ -68,46 +94,61 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         collectionView.delegate = self
         setTitle()
         setupFetchedResultsController()
-        disableNewCollectionButton()
+//        disableNewCollectionButton()
         hideNoImagesLabel()
+    }
+    
+    fileprivate func getPhotosByLocation() {
+        FlickrClient.getPhotosByLocation(latitude: 45,
+                                         longitude: -90, page: 1) { photosbyLocation in
+            
+            if photosbyLocation.photos.photo.count == 0 {
+                self.showNoImagesLabel()
+            } else {
+                // MARK -- This seems  wildly inefficient to be using it like this.
+                for photo in photosbyLocation.photos.photo {
+                    let photoInstance = Photo(context: self.dataController.viewContext)
+                    
+                    do{
+                        let photoUrl = URL(string: photo.url_m)
+                        let imageData = try Data(contentsOf: photoUrl!)
+                        
+                        photoInstance.createdDate = Date() as NSDate
+                        photoInstance.image = imageData as NSData
+                    } catch {
+                        fatalError("Core Data save error")
+                    }
+                }
+                
+                if self.dataController.viewContext.hasChanges {
+                    do{
+                        try? self.dataController.viewContext.save()
+                        self.hideNoImagesLabel()
+                        self.enableNewCollectionButton()
+                        DispatchQueue.main.async{
+                            self.collectionView.reloadData()
+                        }
+                    } catch {
+                        print("Core Data error: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
-        
-//        FlickrClient.getPhotosByLocation(latitude: 45,
-//                                         longitude: -90, page: 1) { photosbyLocation in
-//
-//            if photosbyLocation.photos.photo.count == 0 {
-//                self.showNoImagesLabel()
-//            } else {
-//                // MARK -- This seems  wildly inefficient to be using it like this.
-//                for photo in photosbyLocation.photos.photo {
-//                    let photoInstance = Photo(context: self.dataController.viewContext)
-//
-//                    do{
-//                        let photoUrl = URL(string: photo.url_m)
-//                        let imageData = try Data(contentsOf: photoUrl!)
-//
-//                        photoInstance.createdDate = Date() as NSDate
-//                        photoInstance.image = imageData as NSData
-//                    } catch {
-//                        fatalError("Core Data save error")
-//                    }
-//                }
-//
-//                if self.dataController.viewContext.hasChanges {
-//                    do{
-//                        try? self.dataController.viewContext.save()
-//                        self.hideNoImagesLabel()
-//                        self.enableNewCollectionButton()
-//                        self.collectionView.reloadData()
-//                    } catch {
-//                        print("Core Data error: \(error.localizedDescription)")
-//                    }
-//                }
-//            }
-//        }
+    
+        let photos = fetchedResultsController.fetchedObjects!
+        // If there are no photos fetched from Core Data then go an API call to get the photos by location
+        if photos.count <= 0 {
+            getPhotosByLocation()
+        }
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(true)
+        fetchedResultsController = nil
     }
     
     func enableNewCollectionButton() {
@@ -147,36 +188,51 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         guard let flickrPhotoCell  = cell as? FlickrPhotoCell else {
             return cell
         }
-
-        // If the data image data is data then assign it to the cell and create a new cell otherwise use a placeholder.
         
-        flickrPhotoCell.startActivityIndicator()
-
-        if let data = flickrPhoto.image as Data? {
-            flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
-        } else {
-            flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
+        DispatchQueue.main.async {
+            flickrPhotoCell.startActivityIndicator()
+            if let data = flickrPhoto.image as Data? {
+                flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
+            } else {
+                flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
+            }
+            flickrPhotoCell.stopActivityIndicator()
         }
-        
-        flickrPhotoCell.stopActivityIndicator()
-
+     
+    
         return cell
     }
+    
+    // MARK: TODO -- I believe the deleteion needs to be handled on the background context since this could be a lengthy process.
+    // Issues: UI is not reactive to this.
+    func deleteAllPhotosFromCoreData() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Photo")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+        do {
+            try dataController.viewContext.execute(deleteRequest)
+            try dataController.viewContext.save()
+        } catch let error as NSError {
+            // TODO: handle the error
+            print(error.localizedDescription)
+        }
+    }
+
 }
 
-//extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
-//    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-//        switch type {
-//            case .insert:
-//                collectionView.insertItems(at: [newIndexPath!])
-//            case .delete:
-//                collectionView.deleteItems(at: [indexPath!])
-//                break
-//            case .update:
-//                collectionView.reloadItems(at: [indexPath!])
-//                break
-//            case .move:
-//                break
-//        }
-//    }
-//}
+extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+            case .insert:
+                collectionView.insertItems(at: [newIndexPath!])
+            case .delete:
+                collectionView.deleteItems(at: [indexPath!])
+                break
+            case .update:
+                collectionView.reloadItems(at: [indexPath!])
+                break
+            case .move:
+                break
+        }
+    }
+}

@@ -38,8 +38,4 @@ class FlickrClient {
                 completion(flickrPhotosByLocation)
             }
     }
-    
-    func saveJSONDataToCoreData() {
-        
-    }
 }
