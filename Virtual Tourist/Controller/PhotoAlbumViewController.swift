@@ -16,15 +16,29 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                                 UICollectionViewDataSource, MKMapViewDelegate, CLLocationManagerDelegate,
                                 UIGestureRecognizerDelegate  {
     
+    // Member Variables
+    
     var latitude: Double = 0.0
     var longitude: Double = 0.0
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Photo>!
+    
+    // IBOutlets
 
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var noImagesLabel: UILabel!
+    
+    // IB Actions
+    
+    @IBAction func createCollection(_ sender: Any) {
+        if fetchedResultsController.fetchedObjects!.count > 0 {
+            deleteAllPhotosFromCoreData()
+        }
+        
+        getRandomPhotosFromFlickr()
+    }
     
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
@@ -44,13 +58,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
-    // MARK: TODO -- Remove all of the records from Core Data
-    // Perform an API Call and store the new photos back in Core Data
-    @IBAction func createCollection(_ sender: Any) {
-        if fetchedResultsController.fetchedObjects!.count > 0 {
-            deleteAllPhotosFromCoreData()
-        }
-        
+    fileprivate func getRandomPhotosFromFlickr() {
         let randomPage = Int.random(in: 1...50)
         FlickrClient.getPhotosByLocation(latitude: 45, longitude: -90, page: randomPage) { photosByLocation in
             if randomPage > photosByLocation.photos.pages {
@@ -88,13 +96,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
+    // View Controller Life Cycle Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         collectionView.dataSource = self
         collectionView.delegate = self
         setTitle()
         setupFetchedResultsController()
-//        disableNewCollectionButton()
+        disableNewCollectionButton()
         hideNoImagesLabel()
     }
     
@@ -138,12 +148,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
-    
+       
         let photos = fetchedResultsController.fetchedObjects!
-        // If there are no photos fetched from Core Data then go an API call to get the photos by location
         if photos.count <= 0 {
             getPhotosByLocation()
         }
+        
+        enableNewCollectionButton()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -151,6 +162,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         fetchedResultsController = nil
     }
     
+    // Methods
     func enableNewCollectionButton() {
         newCollectionButton.isEnabled = true
     }
@@ -208,19 +220,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     // MARK: TODO -- I believe the deleteion needs to be handled on the background context since this could be a lengthy process.
     // Issues: UI is not reactive to this.
     func deleteAllPhotosFromCoreData() {
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Photo")
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-
-        do {
-            try dataController.viewContext.execute(deleteRequest)
-            try dataController.viewContext.save()
-        } catch let error as NSError {
-            // TODO: handle the error
-            print(error.localizedDescription)
+        for photo in fetchedResultsController.fetchedObjects ?? [] {
+            dataController.viewContext.delete(photo)
+            try? dataController.viewContext.save()
         }
     }
 
 }
+
+// PhotoAlbumViewController extensions
 
 extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {

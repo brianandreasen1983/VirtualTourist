@@ -13,15 +13,15 @@ import CoreLocation
 
 
 class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, UIGestureRecognizerDelegate, NSFetchedResultsControllerDelegate {
-    @IBOutlet private var mapView: MKMapView!
     var locationManager:CLLocationManager!
     var currentLocationStr = "Current Location"
     var gestureRecognizer: UILongPressGestureRecognizer!
     var selectedAnnotation: MKPointAnnotation?
     var dataController: DataController!
-    
     var fetchedResultsController: NSFetchedResultsController<Pin>!
     
+    @IBOutlet private var mapView: MKMapView!
+
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: false)
@@ -77,6 +77,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         let pin = Pin(context: dataController.viewContext)
         pin.latitude = annotation.coordinate.latitude
         pin.longitude = annotation.coordinate.longitude
+        pin.createdDate = Date() as NSDate
         
         do{
             try dataController.viewContext.save()

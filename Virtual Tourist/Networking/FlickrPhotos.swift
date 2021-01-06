@@ -16,7 +16,6 @@ struct FlickrPhotos: Decodable {
     let photo: [FlickrPhoto]
 }
 
-// MARK: Setup any coding keys if needed
 enum CodingKeys: String, CodingKey {
  case page
  case pages

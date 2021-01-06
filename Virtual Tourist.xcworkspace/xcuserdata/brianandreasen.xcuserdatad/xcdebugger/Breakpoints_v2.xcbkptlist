@@ -7,47 +7,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C6A8D549-3CDC-48A1-822D-7A1B0B626357"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
-            landmarkName = "collectionView(_:cellForItemAt:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "BAEB3BE9-E909-48BB-8196-D55D6D20FABF"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "203"
-            endingLineNumber = "203"
-            landmarkName = "collectionView(_:cellForItemAt:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "1FE69FA6-C858-4136-8556-1F53C1BC289D"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "51"
-            endingLineNumber = "51"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
             landmarkName = "createCollection(_:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -62,8 +30,8 @@
             filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "229"
-            endingLineNumber = "229"
+            startingLineNumber = "237"
+            endingLineNumber = "237"
             landmarkName = "controller(_:didChange:at:for:newIndexPath:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -78,8 +46,8 @@
             filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "231"
-            endingLineNumber = "231"
+            startingLineNumber = "239"
+            endingLineNumber = "239"
             landmarkName = "controller(_:didChange:at:for:newIndexPath:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -87,64 +55,32 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "E4E0A4E4-D18A-4B19-BF18-E18892C72CBE"
-            shouldBeEnabled = "Yes"
+            uuid = "D50573A6-0C2B-4B81-BE4C-DBE3CE4A573A"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "215"
-            endingLineNumber = "215"
-            landmarkName = "deleteAllPhotosFromCoreData()"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
+            landmarkName = "createCollection(_:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "E4E0A4E4-D18A-4B19-BF18-E18892C72CBE - 5645dd81492ebae2"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Virtual_Tourist.PhotoAlbumViewController.deleteAllPhotosFromCoreData() -&gt; ()"
-                  moduleName = "Virtual Tourist"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/brianandreasen/Documents/iOS%20Projects/Virtual%20Tourist/Virtual%20Tourist/Controller/PhotoAlbumViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "215"
-                  endingLineNumber = "215"
-                  offsetFromSymbolStart = "1076">
-               </Location>
-               <Location
-                  uuid = "E4E0A4E4-D18A-4B19-BF18-E18892C72CBE - 5645dd81492ebae2"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Virtual_Tourist.PhotoAlbumViewController.deleteAllPhotosFromCoreData() -&gt; ()"
-                  moduleName = "Virtual Tourist"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/brianandreasen/Documents/iOS%20Projects/Virtual%20Tourist/Virtual%20Tourist/Controller/PhotoAlbumViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "215"
-                  endingLineNumber = "215"
-                  offsetFromSymbolStart = "1437">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "69046EC3-F600-4E52-9039-5B24E46D278B"
+            uuid = "220B299C-108A-4C3E-AF97-C75165805669"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Virtual Tourist/Controller/PhotoAlbumViewController.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "216"
-            endingLineNumber = "216"
-            landmarkName = "deleteAllPhotosFromCoreData()"
+            startingLineNumber = "242"
+            endingLineNumber = "242"
+            landmarkName = "controller(_:didChange:at:for:newIndexPath:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
