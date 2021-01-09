@@ -21,8 +21,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     var longitude: Double = 0.0
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Photo>!
-    
-    // MARK: TODO -- this should be passed from the pin in the TravelLocationsMapViewController.
     var pin: Pin?
     
     // IBOutlets
@@ -43,7 +41,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
         
-        if let selectedPin = self.pin {
+        if let selectedPin = pin {
             let predicate = NSPredicate(format: "pins == %@", selectedPin)
             fetchRequest.predicate = predicate
         }
@@ -82,9 +80,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                             
                             photoInstance.createdDate = Date()
                             photoInstance.image = imageData
-//                            photoInstance.pins = self.pin
-
-
+                            photoInstance.pins = self.pin
                         } catch {
                             fatalError("Core Data save error")
                         }
@@ -117,16 +113,10 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         setupFetchedResultsController()
         disableNewCollectionButton()
         hideNoImagesLabel()
-        
-        let photos = fetchedResultsController.fetchedObjects!
-        if photos.count <= 0 {
-            getPhotosByLocation()
-        }
-        
-        enableNewCollectionButton()
     }
     
     fileprivate func getPhotosByLocation() {
+        // MARK: TODO -- Should be backgrounded
         DispatchQueue.global(qos: .userInitiated).async{
             FlickrClient.getPhotosByLocation(latitude: self.latitude,
                                              longitude: self.longitude, page: 1) { photosbyLocation in
@@ -145,7 +135,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                             photoInstance.createdDate = Date()
                             photoInstance.image = imageData
                             photoInstance.pins = self.pin
-
                         } catch {
                             fatalError("Core Data save error")
                         }
@@ -170,6 +159,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
+       
+        let photos = fetchedResultsController.fetchedObjects!
+        if photos.count <= 0 {
+            getPhotosByLocation()
+        }
+        
+        enableNewCollectionButton()
     }
     
     override func viewDidDisappear(_ animated: Bool) {

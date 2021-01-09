@@ -21,6 +21,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
     var selectedAnnotation: MKPointAnnotation?
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Pin>!
+    var photoAlbumViewController: PhotoAlbumViewController!
     
     // IBOutlets
     @IBOutlet private var mapView: MKMapView!
@@ -106,7 +107,9 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
             }
         }
 
-        performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: selectedPin)
+        photoAlbumViewController?.pin = selectedPin
+
+        performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
