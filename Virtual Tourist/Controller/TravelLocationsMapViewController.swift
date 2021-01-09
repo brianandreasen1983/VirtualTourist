@@ -96,26 +96,17 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         savePin(annotation)
     }
     
-    // MARK: TODO -- Clean this code up and maybe optimize?
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        selectedAnnotation = view.annotation as? MKPointAnnotation
+        var selectedPin = Pin(context: dataController.viewContext)
         
-        if selectedAnnotation != nil {
-            let pins = fetchedResultsController.fetchedObjects!
-
-            for pin in pins {
-                print("The latitude of the pin is: \(pin.latitude) and longitude is: \(pin.longitude) and has \(pin.photos.count) photos")
-                if (pin.latitude == selectedAnnotation?.coordinate.latitude && pin.longitude == selectedAnnotation?.coordinate.longitude) {
-                    if pin.photos.count > 0 {
-                        print(pin.photos.count)
-                        // MARK: TODO -- perform the segue and populate the data from core data in the PhotoAlbumViewController
-                    
-                    }
-                }
+        for pin in fetchedResultsController.fetchedObjects ?? [] {
+            if pin.latitude == selectedAnnotation?.coordinate.latitude && pin.longitude == selectedAnnotation?.coordinate.longitude {
+                selectedPin = pin
+                break
             }
-
-            performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
         }
+
+        performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: selectedPin)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

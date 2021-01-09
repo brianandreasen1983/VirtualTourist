@@ -22,6 +22,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Photo>!
     
+    // MARK: TODO -- this should be passed from the pin in the TravelLocationsMapViewController.
+    var pin: Pin?
+    
     // IBOutlets
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
@@ -55,39 +58,44 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         }
     }
     
-    // MARK: TODO --
     fileprivate func getRandomPhotosFromFlickr() {
         let randomPage = Int.random(in: 1...50)
-        FlickrClient.getPhotosByLocation(latitude: latitude, longitude: longitude, page: randomPage) { photosByLocation in
-            if randomPage > photosByLocation.photos.pages {
-                self.showNoImagesLabel()
-                return
-            } else {
-                self.hideNoImagesLabel()
-                for photo in photosByLocation.photos.photo {
-                    let photoInstance = Photo(context: self.dataController.viewContext)
-                    
-                    do{
-                        let photoUrl = URL(string: photo.url_m)
-                        let imageData = try Data(contentsOf: photoUrl!)
+        DispatchQueue.global(qos: .userInitiated).async {
+            FlickrClient.getPhotosByLocation(latitude: self.latitude, longitude: self.longitude, page: randomPage) { photosByLocation in
+                if randomPage > photosByLocation.photos.pages {
+                    self.showNoImagesLabel()
+                    return
+                } else {
+                    self.hideNoImagesLabel()
+                    for photo in photosByLocation.photos.photo {
+                        let photoInstance = Photo(context: self.dataController.viewContext)
                         
-                        photoInstance.createdDate = Date() as NSDate
-                        photoInstance.image = imageData as NSData
-                    } catch {
-                        fatalError("Core Data save error")
-                    }
-                }
-                
-                if self.dataController.viewContext.hasChanges {
-                    do{
-                        try? self.dataController.viewContext.save()
-                        self.hideNoImagesLabel()
-                        self.enableNewCollectionButton()
-                        DispatchQueue.main.async{
-                            self.collectionView.reloadData()
+                        do{
+                            let photoUrl = URL(string: photo.url_m)
+                            let imageData = try Data(contentsOf: photoUrl!)
+                            
+                            photoInstance.createdDate = Date() as NSDate
+                            photoInstance.image = imageData as NSData
+//                            photoInstance.pins = self.pin
+
+
+                        } catch {
+                            fatalError("Core Data save error")
                         }
-                    } catch {
-                        print("Core Data error: \(error.localizedDescription)")
+                    }
+                    
+                    if self.dataController.viewContext.hasChanges {
+                        do{
+                            try? self.dataController.viewContext.save()
+           
+                            DispatchQueue.main.async{
+                                self.hideNoImagesLabel()
+                                self.enableNewCollectionButton()
+                                self.collectionView.reloadData()
+                            }
+                        } catch {
+                            print("Core Data error: \(error.localizedDescription)")
+                        }
                     }
                 }
             }
@@ -103,40 +111,52 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         setupFetchedResultsController()
         disableNewCollectionButton()
         hideNoImagesLabel()
+        
+        let photos = fetchedResultsController.fetchedObjects!
+        if photos.count <= 0 {
+            getPhotosByLocation()
+        }
+        
+        enableNewCollectionButton()
     }
     
     fileprivate func getPhotosByLocation() {
-        FlickrClient.getPhotosByLocation(latitude: latitude,
-                                         longitude: longitude, page: 1) { photosbyLocation in
-            
-            if photosbyLocation.photos.photo.count == 0 {
-                self.showNoImagesLabel()
-            } else {
-                // MARK -- This seems  wildly inefficient to be using it like this.
-                for photo in photosbyLocation.photos.photo {
-                    let photoInstance = Photo(context: self.dataController.viewContext)
-                    
-                    do{
-                        let photoUrl = URL(string: photo.url_m)
-                        let imageData = try Data(contentsOf: photoUrl!)
-                        
-                        photoInstance.createdDate = Date() as NSDate
-                        photoInstance.image = imageData as NSData
-                    } catch {
-                        fatalError("Core Data save error")
-                    }
-                }
+        DispatchQueue.global(qos: .userInitiated).async{
+            FlickrClient.getPhotosByLocation(latitude: self.latitude,
+                                             longitude: self.longitude, page: 1) { photosbyLocation in
                 
-                if self.dataController.viewContext.hasChanges {
-                    do{
-                        try? self.dataController.viewContext.save()
-                        self.hideNoImagesLabel()
-                        self.enableNewCollectionButton()
-                        DispatchQueue.main.async{
-                            self.collectionView.reloadData()
+                if photosbyLocation.photos.photo.count == 0 {
+                    self.showNoImagesLabel()
+                } else {
+                    // MARK -- This seems  wildly inefficient to be using it like this.
+                    for photo in photosbyLocation.photos.photo {
+                        let photoInstance = Photo(context: self.dataController.viewContext)
+                        
+                        do{
+                            let photoUrl = URL(string: photo.url_m)
+                            let imageData = try Data(contentsOf: photoUrl!)
+                            
+                            photoInstance.createdDate = Date() as NSDate
+                            photoInstance.image = imageData as NSData
+                            print(self.pin)
+//                            photoInstance.pins = self.pin
+
+                        } catch {
+                            fatalError("Core Data save error")
                         }
-                    } catch {
-                        print("Core Data error: \(error.localizedDescription)")
+                    }
+                    
+                    if self.dataController.viewContext.hasChanges {
+                        do{
+                            try? self.dataController.viewContext.save()
+                            DispatchQueue.main.async{
+                                self.hideNoImagesLabel()
+                                self.enableNewCollectionButton()
+                                self.collectionView.reloadData()
+                            }
+                        } catch {
+                            print("Core Data error: \(error.localizedDescription)")
+                        }
                     }
                 }
             }
@@ -145,13 +165,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
-       
-        let photos = fetchedResultsController.fetchedObjects!
-        if photos.count <= 0 {
-            getPhotosByLocation()
-        }
-        
-        enableNewCollectionButton()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -210,15 +223,16 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         
         DispatchQueue.main.async {
             flickrPhotoCell.startActivityIndicator()
+            
             if let data = flickrPhoto.image as Data? {
                 flickrPhotoCell.flickrPhotoImageView.image = UIImage(data: data)
             } else {
                 flickrPhotoCell.flickrPhotoImageView.image = UIImage(named: "placeholder-image")
             }
+            
             flickrPhotoCell.stopActivityIndicator()
         }
-     
-    
+        
         return cell
     }
     
