@@ -42,6 +42,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
+        
+        if let selectedPin = self.pin {
+            let predicate = NSPredicate(format: "pins == %@", selectedPin)
+            fetchRequest.predicate = predicate
+        }
+        
         let sortDescriptor = NSSortDescriptor(key: "createdDate", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
@@ -74,8 +80,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                             let photoUrl = URL(string: photo.url_m)
                             let imageData = try Data(contentsOf: photoUrl!)
                             
-                            photoInstance.createdDate = Date() as NSDate
-                            photoInstance.image = imageData as NSData
+                            photoInstance.createdDate = Date()
+                            photoInstance.image = imageData
 //                            photoInstance.pins = self.pin
 
 
@@ -136,10 +142,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                             let photoUrl = URL(string: photo.url_m)
                             let imageData = try Data(contentsOf: photoUrl!)
                             
-                            photoInstance.createdDate = Date() as NSDate
-                            photoInstance.image = imageData as NSData
-                            print(self.pin)
-//                            photoInstance.pins = self.pin
+                            photoInstance.createdDate = Date()
+                            photoInstance.image = imageData
+                            photoInstance.pins = self.pin
 
                         } catch {
                             fatalError("Core Data save error")

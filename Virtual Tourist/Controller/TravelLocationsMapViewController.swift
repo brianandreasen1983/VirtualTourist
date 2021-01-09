@@ -57,7 +57,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
         let pin = Pin(context: dataController.viewContext)
         pin.latitude = annotation.coordinate.latitude
         pin.longitude = annotation.coordinate.longitude
-        pin.createdDate = Date() as NSDate
+        pin.createdDate = Date()
         
         do{
             try dataController.viewContext.save()
