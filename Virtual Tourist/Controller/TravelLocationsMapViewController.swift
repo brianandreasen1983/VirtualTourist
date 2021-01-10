@@ -21,7 +21,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
     var selectedAnnotation: MKPointAnnotation?
     var dataController: DataController!
     var fetchedResultsController: NSFetchedResultsController<Pin>!
-    var photoAlbumViewController: PhotoAlbumViewController!
+    var selectedPin: Pin?
     
     // IBOutlets
     @IBOutlet private var mapView: MKMapView!
@@ -98,7 +98,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        var selectedPin = Pin(context: dataController.viewContext)
+        selectedAnnotation = view.annotation as? MKPointAnnotation
+        selectedPin = Pin(context: dataController.viewContext)
         
         for pin in fetchedResultsController.fetchedObjects ?? [] {
             if pin.latitude == selectedAnnotation?.coordinate.latitude && pin.longitude == selectedAnnotation?.coordinate.longitude {
@@ -106,16 +107,15 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, CLL
                 break
             }
         }
-
-        photoAlbumViewController?.pin = selectedPin
-
+        
         performSegue(withIdentifier: "navigateToPhotoAlbumCollection", sender: nil)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let photoAlbumViewController = segue.destination as? PhotoAlbumViewController {
-            photoAlbumViewController.latitude = selectedAnnotation?.coordinate.latitude ?? 0.0
-            photoAlbumViewController.longitude = selectedAnnotation?.coordinate.longitude ?? 0.0
+            photoAlbumViewController.latitude = selectedPin?.latitude ?? 0.0
+            photoAlbumViewController.longitude = selectedPin?.longitude ?? 0.0
+            photoAlbumViewController.pin = selectedPin
             photoAlbumViewController.dataController = dataController
         }
     }

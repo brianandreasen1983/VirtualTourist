@@ -41,7 +41,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     fileprivate func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Photo> = Photo.fetchRequest()
         
-        if let selectedPin = pin {
+        if let selectedPin = self.pin {
             let predicate = NSPredicate(format: "pins == %@", selectedPin)
             fetchRequest.predicate = predicate
         }
@@ -64,7 +64,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     
     fileprivate func getRandomPhotosFromFlickr() {
         let randomPage = Int.random(in: 1...50)
-        DispatchQueue.global(qos: .userInitiated).async {
             FlickrClient.getPhotosByLocation(latitude: self.latitude, longitude: self.longitude, page: randomPage) { photosByLocation in
                 if randomPage > photosByLocation.photos.pages {
                     self.showNoImagesLabel()
@@ -89,19 +88,15 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                     if self.dataController.viewContext.hasChanges {
                         do{
                             try? self.dataController.viewContext.save()
-           
-                            DispatchQueue.main.async{
-                                self.hideNoImagesLabel()
-                                self.enableNewCollectionButton()
-                                self.collectionView.reloadData()
-                            }
+                            self.hideNoImagesLabel()
+                            self.enableNewCollectionButton()
+                            self.reloadCollectionView()
                         } catch {
                             print("Core Data error: \(error.localizedDescription)")
                         }
                     }
                 }
             }
-        }
     }
     
     // View Controller Life Cycle Methods
@@ -116,15 +111,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
     }
     
     fileprivate func getPhotosByLocation() {
-        // MARK: TODO -- Should be backgrounded
-        DispatchQueue.global(qos: .userInitiated).async{
-            FlickrClient.getPhotosByLocation(latitude: self.latitude,
+        FlickrClient.getPhotosByLocation(latitude: self.latitude,
                                              longitude: self.longitude, page: 1) { photosbyLocation in
-                
+
                 if photosbyLocation.photos.photo.count == 0 {
                     self.showNoImagesLabel()
                 } else {
-                    // MARK -- This seems  wildly inefficient to be using it like this.
                     for photo in photosbyLocation.photos.photo {
                         let photoInstance = Photo(context: self.dataController.viewContext)
                         
@@ -143,24 +135,24 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
                     if self.dataController.viewContext.hasChanges {
                         do{
                             try? self.dataController.viewContext.save()
-                            DispatchQueue.main.async{
-                                self.hideNoImagesLabel()
-                                self.enableNewCollectionButton()
-                                self.collectionView.reloadData()
-                            }
+                            self.hideNoImagesLabel()
+                            self.enableNewCollectionButton()
+                            self.reloadCollectionView()
                         } catch {
                             print("Core Data error: \(error.localizedDescription)")
                         }
                     }
+                    
+                    self.reloadCollectionView()
                 }
             }
-        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(true)
        
         let photos = fetchedResultsController.fetchedObjects!
+        
         if photos.count <= 0 {
             getPhotosByLocation()
         }
@@ -198,6 +190,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDelegate,
         for photo in fetchedResultsController.fetchedObjects ?? [] {
             dataController.viewContext.delete(photo)
             try? dataController.viewContext.save()
+        }
+    }
+    
+    func reloadCollectionView() {
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
         }
     }
 
@@ -256,6 +254,6 @@ extension PhotoAlbumViewController: NSFetchedResultsControllerDelegate {
         let flickrPhotoToDelete = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(flickrPhotoToDelete)
         try? dataController.viewContext.save()
-        try? collectionView.reloadData()
+        reloadCollectionView()
     }
 }
